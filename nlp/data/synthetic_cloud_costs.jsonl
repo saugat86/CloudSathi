@@ -1,0 +1,4 @@
+{"input": "EC2 usage high, S3 infrequent access", "output": "Switch EC2 to spot instances, move S3 to Glacier."}
+{"input": "RDS running 24/7, low CPU", "output": "Consider downsizing RDS or using Aurora Serverless."}
+{"input": "EBS volumes unattached", "output": "Delete unattached EBS volumes to save costs."}
+{"input": "Azure VM underutilized", "output": "Resize Azure VM to a smaller instance type."}

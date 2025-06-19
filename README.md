@@ -160,6 +160,50 @@ Response:
 }
 ```
 
+## Cloud Cost Recommendation Model (T5)
+
+CloudSathi includes an NLP module to generate cloud cost optimization recommendations using a fine-tuned T5 model.
+
+### Training the Model
+
+1. Install dependencies:
+   ```bash
+   cd backend
+   pip install -r requirements.txt
+   ```
+2. Prepare your dataset in `nlp/data/synthetic_cloud_costs.jsonl` (see example rows in the file).
+3. Train the model (uses GPU if available, else CPU):
+   ```bash
+   cd ../nlp/scripts
+   python train_t5.py
+   ```
+4. The trained model will be saved in `nlp/model/`.
+5. (Optional) To push to Hugging Face Hub, set the `HF_TOKEN` environment variable.
+
+#### Troubleshooting
+- If you see errors about tensor dimensions or string types, ensure your training script uses `remove_columns=dataset.column_names` in the `map` call after tokenization.
+- If you see errors about missing dependencies, run:
+  ```bash
+  pip install torch transformers datasets accelerate
+  ```
+
+### Using the Model for Recommendations
+
+You can generate recommendations from cost data JSON using:
+
+```python
+from nlp.recommend import generate_recommendation
+
+cost_data = {"EC2": "high usage", "S3": "infrequent access"}
+rec = generate_recommendation(cost_data)
+print(rec)  # e.g., "Switch EC2 to spot instances, move S3 to Glacier."
+```
+
+### Notes
+- The training script and inference function will use GPU if available, otherwise fallback to CPU.
+- You can expand the dataset with more real or synthetic cloud cost scenarios for better results.
+- The model is now based on T5, which is suitable for text-to-text generation tasks.
+
 ## Development Environment (Docker)
 
 This project uses Docker Compose for local development. It spins up:
@@ -205,6 +249,28 @@ PYTHONPATH=/path/to/CloudSathi/backend pytest tests/ -v
 ```
 
 The GitHub Actions workflow automatically runs these checks on every push and pull request.
+
+## CI/CD & Code Quality
+
+This project uses GitHub Actions for continuous integration and code quality checks. On every push and pull request to the `main` branch:
+
+- **PyLint** checks Python code style and enforces a minimum score of 8.0
+- **Pytest** runs all backend unit tests
+- Status badges for build and lint are shown at the top of this README
+
+You can find the workflow in `.github/workflows/python-tests.yml`.
+
+### Running Locally
+
+To check code quality and run tests before pushing:
+
+```bash
+cd backend
+pylint app/ tests/
+PYTHONPATH=$(pwd) pytest tests/ -v
+```
+
+All code must pass these checks before merging to `main`.
 
 ## Contributing
 
