@@ -6,8 +6,9 @@ class AzureCostQueryParams(BaseModel):
     start_date: date
     end_date: date
 
+    @staticmethod
     @field_validator('end_date')
-    def end_date_must_be_after_start_date(cls, v: date, info):
+    def end_date_must_be_after_start_date(v: date, info):
         start_date = info.data.get('start_date')
         if start_date and v < start_date:
             raise ValueError('end_date must be after start_date')
