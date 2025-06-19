@@ -57,6 +57,43 @@ CloudSathi/
 └── nlp/           # Natural Language Processing modules
 ```
 
+## API Documentation
+
+### AWS Cost Endpoint
+
+```
+GET /api/aws/costs
+```
+
+Query Parameters:
+
+- `start_date`: Start date (YYYY-MM-DD)
+- `end_date`: End date (YYYY-MM-DD)
+
+Example:
+
+```bash
+curl "http://localhost:8000/api/aws/costs?start_date=2025-06-01&end_date=2025-06-19"
+```
+
+Response:
+
+```json
+{
+  "start_date": "2025-06-01",
+  "end_date": "2025-06-19",
+  "total_cost": 123.45,
+  "currency": "USD",
+  "costs_by_service": [
+    {
+      "service_name": "Amazon Elastic Compute Cloud",
+      "amount": 45.67,
+      "currency": "USD"
+    }
+  ]
+}
+```
+
 ## Development Environment (Docker)
 
 This project uses Docker Compose for local development. It spins up:
