@@ -1,5 +1,8 @@
 # CloudSathi 🚀
 
+[![Python Tests](https://github.com/saugat86/CloudSathi/actions/workflows/python-tests.yml/badge.svg)](https://github.com/saugat86/CloudSathi/actions/workflows/python-tests.yml)
+[![Code style: pylint](https://img.shields.io/badge/code%20style-pylint-green)](https://github.com/PyCQA/pylint)
+
 An open-source, GenAI-powered cloud cost optimization tool designed specifically for Nepal's startups.
 
 ## Overview
@@ -21,26 +24,37 @@ CloudSathi helps Nepali startups optimize their cloud costs using artificial int
 
 - Python 3.8+
 - Node.js 16+
-- Docker
+- Docker and Docker Compose
+- AWS Account (for AWS cost analysis)
+- Azure Account (for Azure cost analysis)
 
-### Installation
+### Local Development Setup
 
+1. Clone the repository:
 ```bash
-# Clone the repository
 git clone https://github.com/saugat86/CloudSathi.git
-
-# Navigate to the project directory
 cd CloudSathi
+```
 
-# Set up the backend
+2. Set up the backend:
+```bash
 cd backend
 python -m venv venv
-source venv/bin/activate
+source venv/bin/activate  # On Windows: .\venv\Scripts\activate
 pip install -r requirements.txt
+```
 
-# Set up the frontend
+3. Set up the frontend:
+```bash
 cd ../frontend
 npm install
+```
+
+4. Configure environment variables:
+```bash
+cd ../backend
+cp .env.example .env
+# Edit .env with your AWS and Azure credentials
 
 # Run the application
 docker-compose up
@@ -57,6 +71,27 @@ CloudSathi/
 └── nlp/           # Natural Language Processing modules
 ```
 
+## Configuration
+
+### Environment Variables
+
+Create a `.env` file in the `backend` directory:
+
+```bash
+# AWS Credentials
+AWS_ACCESS_KEY_ID=your_access_key
+AWS_SECRET_ACCESS_KEY=your_secret_key
+AWS_REGION=your_region
+
+# Azure Credentials
+AZURE_SUBSCRIPTION_ID=your_subscription_id
+AZURE_TENANT_ID=your_tenant_id
+AZURE_CLIENT_ID=your_client_id
+AZURE_CLIENT_SECRET=your_client_secret
+```
+
+⚠️ Never commit your `.env` file to version control!
+
 ## API Documentation
 
 ### AWS Cost Endpoint
@@ -66,18 +101,15 @@ GET /api/aws/costs
 ```
 
 Query Parameters:
-
 - `start_date`: Start date (YYYY-MM-DD)
 - `end_date`: End date (YYYY-MM-DD)
 
 Example:
-
 ```bash
 curl "http://localhost:8000/api/aws/costs?start_date=2025-06-01&end_date=2025-06-19"
 ```
 
 Response:
-
 ```json
 {
   "start_date": "2025-06-01",
@@ -91,6 +123,40 @@ Response:
       "currency": "USD"
     }
   ]
+}
+```
+
+### Azure Cost Endpoint
+
+```
+GET /api/azure/costs
+```
+
+Query Parameters:
+- `start_date`: Start date (YYYY-MM-DD)
+- `end_date`: End date (YYYY-MM-DD)
+
+Example:
+```bash
+curl "http://localhost:8000/api/azure/costs?start_date=2025-06-01&end_date=2025-06-19"
+```
+
+Response:
+```json
+{
+  "start_date": "2025-06-01",
+  "end_date": "2025-06-19",
+  "total_cost": 123.45,
+  "currency": "USD",
+  "costs_by_resource_group": [
+    {
+      "resource_group": "production-rg",
+      "amount": 45.67,
+      "currency": "USD"
+    }
+  ],
+  "time_period_start": "2025-06-01",
+  "time_period_end": "2025-06-19"
 }
 ```
 
@@ -117,9 +183,37 @@ Stop the environment:
 docker-compose down
 ```
 
+## Development
+
+### Code Quality
+
+We maintain high code quality standards using:
+- **PyLint**: For Python code style and error checking
+- **Pytest**: For unit testing
+- **GitHub Actions**: For continuous integration
+
+To run code quality checks locally:
+
+```bash
+cd backend
+
+# Run PyLint
+pylint app/ tests/
+
+# Run Tests
+PYTHONPATH=/path/to/CloudSathi/backend pytest tests/ -v
+```
+
+The GitHub Actions workflow automatically runs these checks on every push and pull request.
+
 ## Contributing
 
 We welcome contributions! Please see our [Contributing Guide](CONTRIBUTING.md) for details on how to submit pull requests, report issues, and contribute to the project.
+
+Before submitting a pull request:
+1. Ensure all tests pass
+2. Run PyLint and fix any issues
+3. Update documentation as needed
 
 ## License
 

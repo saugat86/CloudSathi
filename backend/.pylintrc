@@ -1,0 +1,21 @@
+[MASTER]
+disable=
+    C0111, # missing-docstring
+    C0103, # invalid-name
+    C0114, # missing-module-docstring
+    C0115, # missing-class-docstring
+    C0116, # missing-function-docstring
+    R0903, # too-few-public-methods
+    R0913, # too-many-arguments
+
+[FORMAT]
+max-line-length=120
+
+[MESSAGES CONTROL]
+disable=W0511,C0111
+
+[BASIC]
+good-names=i,j,k,ex,Run,_,id,db
+
+[SIMILARITIES]
+min-similarity-lines=7
