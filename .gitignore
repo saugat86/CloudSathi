@@ -30,6 +30,11 @@ venv.bak/
 .pytest_cache/
 .coverage
 htmlcov/
+*.pyc
+*.pyo
+*.pyd
+*.env
+*.sqlite3
 
 # Node.js
 node_modules/
@@ -46,11 +51,18 @@ out/
 build/
 .DS_Store
 *.pem
+build/
+dist/
+.env.local
 
 # Docker
 .docker/
 docker-compose.override.yml
 *.env
+*.log
+db/
+infra/db/
+.docker/
 
 # IDEs and editors
 .idea/

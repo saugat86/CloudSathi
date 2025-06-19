@@ -1,6 +1,29 @@
 # Contributing to CloudSathi
 
-First off, thank you for considering contributing to CloudSathi! It's people like you that make CloudSathi such a great tool.
+Thank you for your interest in contributing! Please follow these steps:
+
+## How to Contribute
+
+1. **Fork the repository**
+2. **Clone your fork**
+   ```bash
+   git clone https://github.com/your-username/CloudSathi.git
+   ```
+3. **Create a new branch**
+   ```bash
+   git checkout -b feature/your-feature-name
+   ```
+4. **Make your changes**
+5. **Commit and push**
+   ```bash
+   git add .
+   git commit -m "Describe your changes"
+   git push origin feature/your-feature-name
+   ```
+6. **Open a Pull Request**
+   - Go to the original repository on GitHub
+   - Click "New Pull Request"
+   - Fill in the details and submit
 
 ## Code of Conduct
 

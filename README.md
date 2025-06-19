@@ -57,6 +57,29 @@ CloudSathi/
 └── nlp/           # Natural Language Processing modules
 ```
 
+## Development Environment (Docker)
+
+This project uses Docker Compose for local development. It spins up:
+
+- **Backend**: FastAPI (Python 3.8) on port 8000
+- **Frontend**: React (Node.js 16) on port 3000
+- **Database**: SQLite (data persisted in `infra/db`)
+
+### Commands
+
+Start the environment:
+
+```bash
+cd infra
+docker-compose up --build
+```
+
+Stop the environment:
+
+```bash
+docker-compose down
+```
+
 ## Contributing
 
 We welcome contributions! Please see our [Contributing Guide](CONTRIBUTING.md) for details on how to submit pull requests, report issues, and contribute to the project.
@@ -68,9 +91,8 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 ## Support
 
 If you need help or have questions:
+
 - Open an issue
-- Join our community discussions
-- Email us at support@cloudsathi.io
 
 ## Authors
 
