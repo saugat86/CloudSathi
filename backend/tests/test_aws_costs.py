@@ -31,6 +31,12 @@ def mock_aws_response():
         ]
     }
 
+@pytest.fixture(autouse=True)
+def mock_aws_env_vars(monkeypatch):
+    monkeypatch.setenv("AWS_ACCESS_KEY_ID", "testing")
+    monkeypatch.setenv("AWS_SECRET_ACCESS_KEY", "testing")
+    monkeypatch.setenv("AWS_REGION", "us-east-1")
+
 def test_get_aws_costs_success(mock_aws_response):
     with patch('boto3.client') as mock_client:
         mock_ce = MagicMock()

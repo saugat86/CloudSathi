@@ -15,7 +15,8 @@ aws_router = APIRouter()
 logger = logging.getLogger(__name__)
 
 
-def get_aws_costs(
+@aws_router.get("/costs", response_model=CostResponse)
+async def get_aws_costs(
     start_date: date = Query(..., description="Start date"),
     end_date: date = Query(..., description="End date"),
 ):

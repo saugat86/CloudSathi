@@ -13,9 +13,9 @@ def mock_azure_response():
         @property
         def rows(self):
             return [
-                [10.0, "resource-group-1"],
-                [20.0, "resource-group-2"],
-                [5.0, None]  # Test unassigned resource group
+                [10.0, "resource-group-1", "USD"],
+                [20.0, "resource-group-2", "USD"],
+                [5.0, None, "USD"]  # Test unassigned resource group
             ]
     return MockResponse()
 
@@ -64,11 +64,8 @@ def test_get_azure_costs_invalid_dates():
     assert "end_date must be after start_date" in error["detail"]
 
 def test_get_azure_costs_authentication_error(mock_env_vars):
-    def mock_client():
-        raise ClientAuthenticationError("Auth failed")
-
     with patch('os.getenv', mock_env_vars.get), \
-         patch('app.api.azure_routes.get_azure_client', side_effect=mock_client):
+         patch('app.api.azure_routes.ClientSecretCredential', side_effect=ClientAuthenticationError("Auth failed")):
 
         response = client.get("/api/azure/costs", params={
             "start_date": "2025-06-01",
@@ -79,6 +76,7 @@ def test_get_azure_costs_authentication_error(mock_env_vars):
         error = response.json()
         assert "detail" in error
         assert "Azure authentication failed" in error["detail"]
+
 
 def test_get_azure_costs_missing_subscription():
     def mock_getenv(key, default=None):
