@@ -84,13 +84,27 @@ async def get_azure_costs(
             }
         )
         response = client.query.usage(scope=scope, parameters=query_definition)
+        
         total_cost = 0.0
         costs_by_resource_group: List[ResourceGroupCost] = []
         currency = "USD"  # Default to USD
-        if response.rows:
+        
+        time_period_start = start_date.isoformat()
+        time_period_end = end_date.isoformat()
+
+        if response and response.rows:
+            # Assuming the currency is in the 3rd column (index 2)
+            currency_column_index = 2
+            cost_column_index = 0
+            resource_group_column_index = 1
+            
+            # Get currency from the first row if available
+            if len(response.rows[0]) > currency_column_index:
+                currency = response.rows[0][currency_column_index]
+
             for row in response.rows:
-                amount = float(row[0])  # Cost value
-                resource_group = row[1]  # ResourceGroupName
+                amount = float(row[cost_column_index])  # Cost value
+                resource_group = row[resource_group_column_index]  # ResourceGroupName
                 if amount > 0:
                     total_cost += amount
                     costs_by_resource_group.append(
@@ -100,14 +114,15 @@ async def get_azure_costs(
                             currency=currency
                         )
                     )
+        
         return AzureCostResponse(
             start_date=start_date,
             end_date=end_date,
             total_cost=total_cost,
             currency=currency,
             costs_by_resource_group=costs_by_resource_group,
-            time_period_start=start_date.isoformat(),
-            time_period_end=end_date.isoformat()
+            time_period_start=time_period_start,
+            time_period_end=time_period_end
         )
     except HTTPException as exc:
         raise exc
