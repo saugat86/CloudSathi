@@ -23,10 +23,7 @@ ChartJS.register(
   Legend
 );
 
-interface CostData {
-  date: string;
-  [key: string]: any;
-}
+
 
 interface ServiceCost {
   service_name: string;

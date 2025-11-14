@@ -12,50 +12,6 @@ from app.api.azure_models import AzureCostResponse, ResourceGroupCost
 azure_router = APIRouter()
 
 
-def get_azure_credentials():
-    """Retrieves Azure credentials from environment variables."""
-    subscription_id = os.getenv('AZURE_SUBSCRIPTION_ID')
-    tenant_id = os.getenv('AZURE_TENANT_ID')
-    client_id = os.getenv('AZURE_CLIENT_ID')
-    client_secret = os.getenv('AZURE_CLIENT_SECRET')
-    if not subscription_id:
-        raise HTTPException(
-            status_code=400,
-            detail="AZURE_SUBSCRIPTION_ID is required"
-        )
-    if not all([tenant_id, client_id, client_secret]):
-        raise HTTPException(
-            status_code=400,
-            detail="Azure credentials are not properly configured. "
-                   "Missing one or more required credentials."
-        )
-    return subscription_id, tenant_id, client_id, client_secret
-
-
-def get_azure_client():
-    """Initializes and returns the Azure Cost Management client."""
-    try:
-        subscription_id, tenant_id, client_id, client_secret = get_azure_credentials()
-        credential = ClientSecretCredential(
-            tenant_id=tenant_id,
-            client_id=client_id,
-            client_secret=client_secret
-        )
-        return CostManagementClient(credential, subscription_id)
-    except HTTPException as exc:
-        raise exc
-    except ClientAuthenticationError as exc:
-        raise HTTPException(
-            status_code=401,
-            detail="Azure authentication failed. Please check your credentials."
-        ) from exc
-    except Exception as exc:
-        raise HTTPException(
-            status_code=500,
-            detail=f"Failed to initialize Azure client: {exc}"
-        ) from exc
-
-
 @azure_router.get("/costs", response_model=AzureCostResponse)
 async def get_azure_costs(
     start_date: date = Query(..., description="Start date (YYYY-MM-DD)"),
@@ -67,9 +23,42 @@ async def get_azure_costs(
             status_code=422,
             detail="end_date must be after start_date"
         )
+    
+    subscription_id = os.getenv('AZURE_SUBSCRIPTION_ID')
+    tenant_id = os.getenv('AZURE_TENANT_ID')
+    client_id = os.getenv('AZURE_CLIENT_ID')
+    client_secret = os.getenv('AZURE_CLIENT_SECRET')
+
+    if not subscription_id:
+        raise HTTPException(
+            status_code=400,
+            detail="AZURE_SUBSCRIPTION_ID is required"
+        )
+    if not all([tenant_id, client_id, client_secret]):
+        raise HTTPException(
+            status_code=400,
+            detail="Azure credentials are not properly configured. "
+                   "Missing one or more required credentials."
+        )
+
     try:
-        subscription_id, _, _, _ = get_azure_credentials()
-        client = get_azure_client()
+        credential = ClientSecretCredential(
+            tenant_id=tenant_id,
+            client_id=client_id,
+            client_secret=client_secret
+        )
+        client = CostManagementClient(credential, subscription_id)
+    except ClientAuthenticationError as exc:
+        raise HTTPException(
+            status_code=401,
+            detail="Azure authentication failed. Please check your credentials."
+        ) from exc
+    except Exception as exc:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Failed to initialize Azure client: {exc}"
+        ) from exc
+
         scope = f"/subscriptions/{subscription_id}"
         query_definition = QueryDefinition(
             type="ActualCost",
