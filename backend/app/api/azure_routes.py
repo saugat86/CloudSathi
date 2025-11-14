@@ -1,3 +1,4 @@
+"""API routes for Azure cost management."""
 import os
 from typing import List
 from datetime import date
@@ -10,7 +11,9 @@ from app.api.azure_models import AzureCostResponse, ResourceGroupCost
 
 azure_router = APIRouter()
 
+
 def get_azure_credentials():
+    """Retrieves Azure credentials from environment variables."""
     subscription_id = os.getenv('AZURE_SUBSCRIPTION_ID')
     tenant_id = os.getenv('AZURE_TENANT_ID')
     client_id = os.getenv('AZURE_CLIENT_ID')
@@ -23,11 +26,14 @@ def get_azure_credentials():
     if not all([tenant_id, client_id, client_secret]):
         raise HTTPException(
             status_code=400,
-            detail="Azure credentials are not properly configured. Missing one or more required credentials."
+            detail="Azure credentials are not properly configured. "
+                   "Missing one or more required credentials."
         )
     return subscription_id, tenant_id, client_id, client_secret
 
+
 def get_azure_client():
+    """Initializes and returns the Azure Cost Management client."""
     try:
         subscription_id, tenant_id, client_id, client_secret = get_azure_credentials()
         credential = ClientSecretCredential(
@@ -46,14 +52,16 @@ def get_azure_client():
     except Exception as exc:
         raise HTTPException(
             status_code=500,
-            detail=f"Failed to initialize Azure client: {str(exc)}"
+            detail=f"Failed to initialize Azure client: {exc}"
         ) from exc
+
 
 @azure_router.get("/costs", response_model=AzureCostResponse)
 async def get_azure_costs(
     start_date: date = Query(..., description="Start date (YYYY-MM-DD)"),
     end_date: date = Query(..., description="End date (YYYY-MM-DD)")
 ):
+    """Retrieves Azure cost and usage data."""
     if end_date < start_date:
         raise HTTPException(
             status_code=422,
@@ -122,5 +130,5 @@ async def get_azure_costs(
     except Exception as exc:
         raise HTTPException(
             status_code=500,
-            detail=f"Internal server error: {str(exc)}"
+            detail=f"Internal server error: {exc}"
         ) from exc

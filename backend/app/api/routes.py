@@ -1,8 +1,10 @@
+"""API routes for AWS cost management."""
 from datetime import date
 import os
+import logging
 from typing import List
 
-from botocore.exceptions import ClientError
+from botocore.exceptions import ClientError, NoCredentialsError
 from fastapi import APIRouter, HTTPException, Query
 
 from app.api.models import CostResponse, ServiceCost
@@ -10,9 +12,19 @@ from app.api.models import CostResponse, ServiceCost
 import boto3
 
 aws_router = APIRouter()
+logger = logging.getLogger(__name__)
 
 
 def get_aws_client():
+    """Initializes and returns the AWS Cost Explorer client."""
+    if not os.getenv('AWS_ACCESS_KEY_ID') or not os.getenv('AWS_SECRET_ACCESS_KEY'):
+        logger.error("AWS credentials not found")
+        raise HTTPException(
+            status_code=500,
+            detail="AWS credentials not found. "
+                   "Please set AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY environment variables."
+        )
+
     try:
         return boto3.client(
             'ce',
@@ -20,18 +32,26 @@ def get_aws_client():
             aws_secret_access_key=os.getenv('AWS_SECRET_ACCESS_KEY'),
             region_name=os.getenv('AWS_REGION', 'us-east-1')
         )
-    except Exception as e:
+    except NoCredentialsError as exc:
+        logger.error("Invalid AWS credentials")
         raise HTTPException(
             status_code=500,
-            detail=f"Failed to initialize AWS client: {str(e)}"
+            detail="Invalid AWS credentials. Please check your AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY."
+        ) from exc
+    except Exception as e:
+        logger.error("Failed to initialize AWS client: %s", e)
+        raise HTTPException(
+            status_code=500,
+            detail=f"Failed to initialize AWS client: {e}"
         ) from e
 
 
 @aws_router.get("/costs", response_model=CostResponse)
 async def get_aws_costs(
-    start_date: date = Query(..., description="Start date (YYYY-MM-DD)"),
-    end_date: date = Query(..., description="End date (YYYY-MM-DD)")
+    start_date: date = Query(..., description="Start date"),
+    end_date: date = Query(..., description="End date"),
 ):
+    """Retrieves AWS cost and usage data."""
     if end_date < start_date:
         raise HTTPException(
             status_code=422,
@@ -83,10 +103,10 @@ async def get_aws_costs(
             ) from e
         raise HTTPException(
             status_code=500,
-            detail=f"AWS API error: {str(e)}"
+            detail=f"AWS API error: {e}"
         ) from e
     except Exception as e:
         raise HTTPException(
             status_code=500,
-            detail=f"Internal server error: {str(e)}"
+            detail=f"Internal server error: {e}"
         ) from e

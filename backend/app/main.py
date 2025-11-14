@@ -1,6 +1,12 @@
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
+from dotenv import load_dotenv
 from app.api.routes import aws_router
 from app.api.azure_routes import azure_router
+from app.api.recommendation_routes import router as recommendation_router
+
+# Load environment variables from .env file
+load_dotenv()
 
 app = FastAPI(
     title="CloudSathi API",
@@ -8,5 +14,15 @@ app = FastAPI(
     version="1.0.0"
 )
 
+# Add CORS middleware
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:3000"],  # React dev server
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
 app.include_router(aws_router, prefix="/api/aws", tags=["AWS"])
 app.include_router(azure_router, prefix="/api/azure", tags=["Azure"])
+app.include_router(recommendation_router, prefix="/api", tags=["Recommendations"])
