@@ -23,6 +23,33 @@ npm start
 ```
 The app will run at [http://localhost:3000](http://localhost:3000) and expects the backend API to be available at `/api` (see Docker setup or proxy config for local development).
 
+### Using Mock Data
+
+For development and demonstration without backend credentials, you can use sample data:
+
+1. Copy the example environment file:
+   ```bash
+   cp .env.example .env
+   ```
+
+2. Enable mock data in `.env`:
+   ```
+   REACT_APP_USE_MOCK_DATA=true
+   ```
+
+3. Start the app:
+   ```bash
+   npm start
+   ```
+
+The frontend will now display sample AWS and Azure cost data without calling the real API.
+
+**Mock Data Includes:**
+- AWS: $1,247.85 total across 7 services (EC2, S3, RDS, Lambda, CloudFront, DynamoDB, ELB)
+- Azure: $892.45 total across 5 resource groups (production, development, staging, testing, shared-services)
+
+**Automatic Fallback:** Even with `REACT_APP_USE_MOCK_DATA=false`, the app will automatically fall back to mock data if the API is unavailable.
+
 ## Project Structure
 - `src/components/CloudCostDashboard.tsx` — Main dashboard UI
 - `src/utils/toast.tsx` — Toast notification hook
