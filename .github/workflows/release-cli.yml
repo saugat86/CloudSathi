@@ -65,7 +65,8 @@ jobs:
     name: Create GitHub Release
     needs: build
     runs-on: ubuntu-latest
-    if: startsWith(github.ref, 'refs/tags/')
+    # Run on tag pushes or manual triggers
+    if: startsWith(github.ref, 'refs/tags/') || github.event_name == 'workflow_dispatch'
 
     steps:
       - name: Checkout code
@@ -82,9 +83,10 @@ jobs:
       - name: Create Release
         uses: softprops/action-gh-release@v1
         with:
-          name: CloudSathi CLI ${{ github.ref_name }}
+          tag_name: ${{ github.ref_name || 'manual-build' }}
+          name: CloudSathi CLI ${{ github.ref_name || 'Manual Build' }}
           body: |
-            ## CloudSathi CLI Release ${{ github.ref_name }}
+            ## CloudSathi CLI Release ${{ github.ref_name || 'Manual Build' }}
             
             ### Downloads
             
