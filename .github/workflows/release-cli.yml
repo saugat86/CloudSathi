@@ -1,0 +1,165 @@
+name: Build and Release CLI Executables
+
+on:
+  push:
+    tags:
+      - 'v*'  # Trigger on version tags like v1.0.0
+  workflow_dispatch:  # Allow manual trigger
+
+jobs:
+  build:
+    name: Build CLI for ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        include:
+          - os: ubuntu-latest
+            artifact_name: cloudsathi-linux
+            asset_name: cloudsathi-linux-amd64
+          - os: macos-latest
+            artifact_name: cloudsathi-macos
+            asset_name: cloudsathi-macos-amd64
+          - os: windows-latest
+            artifact_name: cloudsathi-windows.exe
+            asset_name: cloudsathi-windows-amd64.exe
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install pyinstaller
+          pip install -r backend/requirements.txt
+
+      - name: Build executable with PyInstaller
+        run: |
+          pyinstaller cloudsathi.spec --clean
+
+      - name: Rename executable (Unix)
+        if: runner.os != 'Windows'
+        run: |
+          mv dist/cloudsathi dist/${{ matrix.asset_name }}
+
+      - name: Rename executable (Windows)
+        if: runner.os == 'Windows'
+        run: |
+          move dist\cloudsathi.exe dist\${{ matrix.asset_name }}
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: ${{ matrix.artifact_name }}
+          path: dist/${{ matrix.asset_name }}
+
+  release:
+    name: Create GitHub Release
+    needs: build
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/')
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Download all artifacts
+        uses: actions/download-artifact@v3
+        with:
+          path: artifacts
+
+      - name: Display structure of downloaded files
+        run: ls -R artifacts
+
+      - name: Create Release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ github.ref_name }}
+          release_name: CloudSathi CLI ${{ github.ref_name }}
+          body: |
+            ## CloudSathi CLI Release ${{ github.ref_name }}
+            
+            ### Downloads
+            
+            Choose the appropriate executable for your platform:
+            
+            - **Linux**: `cloudsathi-linux-amd64`
+            - **macOS**: `cloudsathi-macos-amd64`
+            - **Windows**: `cloudsathi-windows-amd64.exe`
+            
+            ### Installation
+            
+            #### Linux/macOS
+            ```bash
+            # Download the executable
+            chmod +x cloudsathi-*
+            sudo mv cloudsathi-* /usr/local/bin/cloudsathi
+            
+            # Verify installation
+            cloudsathi --version
+            ```
+            
+            #### Windows
+            ```powershell
+            # Download cloudsathi-windows-amd64.exe
+            # Rename to cloudsathi.exe
+            # Add to PATH or run from current directory
+            
+            # Verify installation
+            .\cloudsathi.exe --version
+            ```
+            
+            ### Usage
+            
+            ```bash
+            # Check API health
+            cloudsathi health
+            
+            # Get AWS costs
+            cloudsathi aws costs --start-date 2025-06-01 --end-date 2025-06-19
+            
+            # Get recommendations
+            cloudsathi recommend --ec2 "high usage" --s3 "moderate usage"
+            ```
+            
+            For more information, see the [CLI Guide](https://github.com/saugat86/CloudSathi/blob/main/docs/CLI_GUIDE.md).
+          draft: false
+          prerelease: false
+
+      - name: Upload Linux executable
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: artifacts/cloudsathi-linux/cloudsathi-linux-amd64
+          asset_name: cloudsathi-linux-amd64
+          asset_content_type: application/octet-stream
+
+      - name: Upload macOS executable
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: artifacts/cloudsathi-macos/cloudsathi-macos-amd64
+          asset_name: cloudsathi-macos-amd64
+          asset_content_type: application/octet-stream
+
+      - name: Upload Windows executable
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: artifacts/cloudsathi-windows.exe/cloudsathi-windows-amd64.exe
+          asset_name: cloudsathi-windows-amd64.exe
+          asset_content_type: application/octet-stream
