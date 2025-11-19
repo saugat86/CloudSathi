@@ -1,6 +1,7 @@
 # CloudSathi 🚀
 
 [![Python Tests](https://github.com/saugat86/CloudSathi/actions/workflows/python-tests.yml/badge.svg)](https://github.com/saugat86/CloudSathi/actions/workflows/python-tests.yml)
+[![CLI Release](https://github.com/saugat86/CloudSathi/actions/workflows/release-cli.yml/badge.svg)](https://github.com/saugat86/CloudSathi/actions/workflows/release-cli.yml)
 [![Code style: pylint](https://img.shields.io/badge/code%20style-pylint-green)](https://github.com/PyCQA/pylint)
 
 An open-source, GenAI-powered cloud cost optimization tool designed specifically for Nepal's startups.
@@ -11,24 +12,65 @@ CloudSathi helps Nepali startups optimize their cloud costs using artificial int
 
 ## Features
 
-- 🤖 AI-powered cost optimization recommendations
-- 📊 Real-time cloud spending analytics
-- 💡 Smart resource allocation suggestions
-- 🔄 Automated cost optimization workflows
-- 📈 Cost trend analysis and forecasting
-- 🌐 Multi-cloud support (AWS, Azure, GCP)
+- 🤖 **AI-powered cost optimization recommendations** using T5 model
+- 📊 **Real-time cloud spending analytics** for AWS and Azure
+- 💡 **Smart resource allocation suggestions** based on usage patterns
+- 🔄 **Automated cost optimization workflows**
+- 📈 **Cost trend analysis and forecasting**
+- 🌐 **Multi-cloud support** (AWS, Azure, GCP)
+- 💻 **Beautiful CLI tool** with rich terminal output
+- 🚀 **Standalone executables** for Linux, macOS, and Windows
+- 🔌 **REST API** with OpenAPI/Swagger documentation
 
 ## Getting Started
 
-### Prerequisites
+### Quick Start with CLI (No Python Required!)
+
+Download the standalone executable for your platform from [Releases](https://github.com/saugat86/CloudSathi/releases):
+
+**Linux/macOS:**
+```bash
+# Download and install
+wget https://github.com/saugat86/CloudSathi/releases/latest/download/cloudsathi-linux-amd64
+chmod +x cloudsathi-linux-amd64
+sudo mv cloudsathi-linux-amd64 /usr/local/bin/cloudsathi
+
+# Verify installation
+cloudsathi --version
+```
+
+**Windows:**
+```powershell
+# Download cloudsathi-windows-amd64.exe from releases
+# Add to PATH or run from current directory
+.\cloudsathi.exe --version
+```
+
+**Using the CLI:**
+```bash
+# Check API health
+cloudsathi health
+
+# Get AWS costs
+cloudsathi aws costs --start-date 2025-06-01 --end-date 2025-06-19
+
+# Get recommendations
+cloudsathi recommend --ec2 "high usage" --s3 "moderate usage"
+```
+
+See the [CLI Guide](docs/CLI_GUIDE.md) for complete documentation.
+
+### Development Setup
+
+#### Prerequisites
 
 - Python 3.8+
-- Node.js 16+
-- Docker and Docker Compose
+- Node.js 16+ (for frontend)
+- Docker and Docker Compose (optional)
 - AWS Account (for AWS cost analysis)
 - Azure Account (for Azure cost analysis)
 
-### Local Development Setup
+#### Backend Setup
 
 1. Clone the repository:
 ```bash
@@ -44,31 +86,45 @@ source venv/bin/activate  # On Windows: .\venv\Scripts\activate
 pip install -r requirements.txt
 ```
 
-3. Set up the frontend:
+3. Configure environment variables:
 ```bash
-cd ../frontend
-npm install
-```
-
-4. Configure environment variables:
-```bash
-cd ../backend
 cp .env.example .env
 # Edit .env with your AWS and Azure credentials
+```
 
-# Run the application
-docker-compose up
+4. Run the backend:
+```bash
+uvicorn app.main:app --reload
+```
+
+The API will be available at http://localhost:8000
+
+#### CLI Installation (Development)
+
+```bash
+# Install CLI in development mode
+pip install -e .
+
+# Use the CLI
+cloudsathi --help
 ```
 
 ## Project Structure
 
 ```
 CloudSathi/
-├── backend/        # Python FastAPI backend
-├── frontend/       # React.js frontend
-├── infra/         # Infrastructure as Code (Terraform)
-├── docs/          # Documentation
-└── nlp/           # Natural Language Processing modules
+├── backend/              # Python FastAPI backend
+│   ├── app/             # API routes and models
+│   └── tests/           # Unit tests
+├── cli/                 # Command-line interface
+│   ├── commands/        # CLI commands (AWS, Azure, recommendations)
+│   └── utils/           # API client, display, config
+├── frontend/            # React.js frontend
+├── infra/              # Infrastructure as Code (Terraform)
+├── docs/               # Documentation
+├── nlp/                # Natural Language Processing modules
+├── scripts/            # Build and utility scripts
+└── .github/workflows/  # CI/CD pipelines
 ```
 
 ## Configuration
@@ -271,6 +327,14 @@ PYTHONPATH=$(pwd) pytest tests/ -v
 ```
 
 All code must pass these checks before merging to `main`.
+
+## Documentation
+
+- [CLI Guide](docs/CLI_GUIDE.md) - Complete CLI usage guide
+- [Testing Guide](docs/TESTING_GUIDE.md) - How to test the application
+- [Release Process](docs/RELEASE_PROCESS.md) - How to create releases
+- [CLI Walkthrough](docs/CLI_WALKTHROUGH.md) - CLI implementation details
+- [Test Report](docs/TEST_REPORT.md) - Latest test results
 
 ## Contributing
 
