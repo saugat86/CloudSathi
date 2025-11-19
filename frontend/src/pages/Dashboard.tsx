@@ -1,18 +1,24 @@
 import React, { useState, useEffect } from 'react';
-import { Cloud, TrendingUp, DollarSign, Calendar } from 'lucide-react';
+import {
+    TrendingUp,
+    DollarSign,
+    Calendar,
+    ArrowUpRight,
+    ArrowDownRight,
+    Target,
+    AlertTriangle
+} from 'lucide-react';
 import { costService } from '../services/costService';
 import { AWSCostResponse, AzureCostResponse } from '../types/cost';
 import { formatCurrency, getDateDaysAgo, getTodayDate } from '../utils/formatters';
 import LoadingSpinner from '../components/LoadingSpinner';
 import ErrorAlert from '../components/ErrorAlert';
-import { Chart as ChartJS, ArcElement, Tooltip, Legend, CategoryScale, LinearScale, BarElement } from 'chart.js';
-import { Pie, Bar } from 'react-chartjs-2';
-
-ChartJS.register(ArcElement, Tooltip, Legend, CategoryScale, LinearScale, BarElement);
+import TrendChart from '../components/TrendChart';
+import { sampleBudget, sampleFindings, USE_MOCK_DATA } from '../services/mockData';
 
 const Dashboard: React.FC = () => {
-    const [awsCosts, setAwsCosts] = useState<AWSCostResponse | null>(null);
-    const [azureCosts, setAzureCosts] = useState<AzureCostResponse | null>(null);
+    const [awsCosts, setAwsCosts] = useState<(AWSCostResponse & { daily_costs?: any[] }) | null>(null);
+    const [azureCosts, setAzureCosts] = useState<(AzureCostResponse & { daily_costs?: any[] }) | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
 
@@ -55,114 +61,151 @@ const Dashboard: React.FC = () => {
     }
 
     const totalCost = (awsCosts?.total_cost || 0) + (azureCosts?.total_cost || 0);
-
-    // Prepare chart data for AWS
-    const awsChartData = awsCosts ? {
-        labels: awsCosts.costs_by_service.map(s => s.service_name),
-        datasets: [{
-            data: awsCosts.costs_by_service.map(s => s.amount),
-            backgroundColor: [
-                '#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6',
-                '#EC4899', '#14B8A6', '#F97316', '#6366F1', '#84CC16'
-            ],
-        }],
-    } : null;
-
-    // Prepare chart data for Azure
-    const azureChartData = azureCosts ? {
-        labels: azureCosts.costs_by_resource_group.map(rg => rg.resource_group),
-        datasets: [{
-            data: azureCosts.costs_by_resource_group.map(rg => rg.amount),
-            backgroundColor: [
-                '#0078D4', '#50E6FF', '#00BCF2', '#00B294', '#FFB900',
-                '#E81123', '#B4009E', '#5C2D91', '#008272', '#00CC6A'
-            ],
-        }],
-    } : null;
+    const potentialSavings = sampleFindings.reduce((acc, curr) => acc + curr.estimated_monthly_savings, 0);
+    const budgetUsagePercent = (sampleBudget.current_spend / sampleBudget.total_budget) * 100;
 
     return (
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-            <div className="mb-8">
-                <h1 className="text-3xl font-bold text-gray-900">Cloud Cost Dashboard</h1>
-                <p className="mt-2 text-gray-600">
-                    Overview of your cloud spending for the last 30 days
-                </p>
-            </div>
-
-            {error && (
-                <div className="mb-6">
-                    <ErrorAlert message={error} onDismiss={() => setError(null)} />
+        <div className="space-y-6">
+            <div className="flex items-center justify-between">
+                <div>
+                    <h1 className="text-2xl font-bold text-gray-900">FinOps Dashboard</h1>
+                    <p className="mt-1 text-sm text-gray-500">
+                        Overview of cloud spend, budget health, and optimization opportunities.
+                    </p>
                 </div>
-            )}
-
-            {/* Summary Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-                <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-                    <div className="flex items-center justify-between">
-                        <div>
-                            <p className="text-sm font-medium text-gray-600">Total Cost</p>
-                            <p className="mt-2 text-3xl font-bold text-gray-900">
-                                {formatCurrency(totalCost)}
-                            </p>
-                        </div>
-                        <DollarSign className="h-12 w-12 text-blue-600" />
-                    </div>
-                </div>
-
-                <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-                    <div className="flex items-center justify-between">
-                        <div>
-                            <p className="text-sm font-medium text-gray-600">AWS Costs</p>
-                            <p className="mt-2 text-3xl font-bold text-gray-900">
-                                {formatCurrency(awsCosts?.total_cost || 0)}
-                            </p>
-                        </div>
-                        <Cloud className="h-12 w-12 text-orange-600" />
-                    </div>
-                </div>
-
-                <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-                    <div className="flex items-center justify-between">
-                        <div>
-                            <p className="text-sm font-medium text-gray-600">Azure Costs</p>
-                            <p className="mt-2 text-3xl font-bold text-gray-900">
-                                {formatCurrency(azureCosts?.total_cost || 0)}
-                            </p>
-                        </div>
-                        <Cloud className="h-12 w-12 text-blue-600" />
-                    </div>
+                <div className="flex items-center space-x-3">
+                    <span className="text-sm text-gray-500 bg-white px-3 py-1 rounded-md border border-gray-200 shadow-sm">
+                        {startDate} - {endDate}
+                    </span>
+                    <button className="bg-blue-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-blue-700 transition-colors">
+                        Export Report
+                    </button>
                 </div>
             </div>
 
-            {/* Charts */}
+            {error && <ErrorAlert message={error} onDismiss={() => setError(null)} />}
+
+            {/* KPI Cards */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                {/* Total Spend */}
+                <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                    <div className="flex items-center justify-between mb-4">
+                        <h3 className="text-sm font-medium text-gray-500">Total Spend (MTD)</h3>
+                        <div className="p-2 bg-blue-50 rounded-lg">
+                            <DollarSign className="h-5 w-5 text-blue-600" />
+                        </div>
+                    </div>
+                    <div className="flex items-baseline">
+                        <p className="text-2xl font-bold text-gray-900">{formatCurrency(totalCost)}</p>
+                        <span className="ml-2 text-sm font-medium text-green-600 flex items-center">
+                            <ArrowDownRight className="h-4 w-4 mr-1" />
+                            2.5%
+                        </span>
+                    </div>
+                    <p className="mt-1 text-xs text-gray-500">vs last month</p>
+                </div>
+
+                {/* Forecast */}
+                <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                    <div className="flex items-center justify-between mb-4">
+                        <h3 className="text-sm font-medium text-gray-500">Forecasted Spend</h3>
+                        <div className="p-2 bg-purple-50 rounded-lg">
+                            <TrendingUp className="h-5 w-5 text-purple-600" />
+                        </div>
+                    </div>
+                    <div className="flex items-baseline">
+                        <p className="text-2xl font-bold text-gray-900">{formatCurrency(sampleBudget.forecasted_spend)}</p>
+                        <span className="ml-2 text-sm font-medium text-red-600 flex items-center">
+                            <ArrowUpRight className="h-4 w-4 mr-1" />
+                            5.2%
+                        </span>
+                    </div>
+                    <p className="mt-1 text-xs text-gray-500">Projected month end</p>
+                </div>
+
+                {/* Budget Health */}
+                <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                    <div className="flex items-center justify-between mb-4">
+                        <h3 className="text-sm font-medium text-gray-500">Budget Health</h3>
+                        <div className="p-2 bg-green-50 rounded-lg">
+                            <Target className="h-5 w-5 text-green-600" />
+                        </div>
+                    </div>
+                    <div className="flex items-baseline mb-2">
+                        <p className="text-2xl font-bold text-gray-900">{budgetUsagePercent.toFixed(1)}%</p>
+                        <span className="ml-2 text-sm text-gray-500">used</span>
+                    </div>
+                    <div className="w-full bg-gray-200 rounded-full h-2">
+                        <div
+                            className={`h-2 rounded-full ${budgetUsagePercent > 90 ? 'bg-red-500' : 'bg-green-500'}`}
+                            style={{ width: `${Math.min(budgetUsagePercent, 100)}%` }}
+                        ></div>
+                    </div>
+                    <p className="mt-2 text-xs text-gray-500">
+                        {formatCurrency(sampleBudget.current_spend)} of {formatCurrency(sampleBudget.total_budget)}
+                    </p>
+                </div>
+
+                {/* Potential Savings */}
+                <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                    <div className="flex items-center justify-between mb-4">
+                        <h3 className="text-sm font-medium text-gray-500">Potential Savings</h3>
+                        <div className="p-2 bg-yellow-50 rounded-lg">
+                            <AlertTriangle className="h-5 w-5 text-yellow-600" />
+                        </div>
+                    </div>
+                    <div className="flex items-baseline">
+                        <p className="text-2xl font-bold text-gray-900">{formatCurrency(potentialSavings)}</p>
+                        <span className="ml-2 text-sm text-gray-500">/ month</span>
+                    </div>
+                    <p className="mt-1 text-xs text-gray-500">{sampleFindings.length} opportunities identified</p>
+                </div>
+            </div>
+
+            {/* Trend Chart */}
+            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                <h3 className="text-lg font-semibold text-gray-900 mb-6">Daily Spend Trend (30 Days)</h3>
+                <div className="h-80">
+                    <TrendChart
+                        awsData={awsCosts?.daily_costs || []}
+                        azureData={azureCosts?.daily_costs || []}
+                    />
+                </div>
+            </div>
+
+            {/* Cost Breakdown Grid */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                {awsChartData && (
-                    <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-                        <h2 className="text-lg font-semibold text-gray-900 mb-4">
-                            AWS Costs by Service
-                        </h2>
-                        <div className="h-64">
-                            <Pie data={awsChartData} options={{ maintainAspectRatio: false }} />
-                        </div>
+                {/* AWS Breakdown */}
+                <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                    <h3 className="text-lg font-semibold text-gray-900 mb-4">Top AWS Services</h3>
+                    <div className="space-y-4">
+                        {awsCosts?.costs_by_service.slice(0, 5).map((service, index) => (
+                            <div key={index} className="flex items-center justify-between">
+                                <div className="flex items-center">
+                                    <div className="w-2 h-2 rounded-full bg-blue-500 mr-3"></div>
+                                    <span className="text-sm text-gray-700 truncate max-w-[200px]">{service.service_name}</span>
+                                </div>
+                                <span className="text-sm font-medium text-gray-900">{formatCurrency(service.amount)}</span>
+                            </div>
+                        ))}
                     </div>
-                )}
+                </div>
 
-                {azureChartData && (
-                    <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-                        <h2 className="text-lg font-semibold text-gray-900 mb-4">
-                            Azure Costs by Resource Group
-                        </h2>
-                        <div className="h-64">
-                            <Pie data={azureChartData} options={{ maintainAspectRatio: false }} />
-                        </div>
+                {/* Azure Breakdown */}
+                <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                    <h3 className="text-lg font-semibold text-gray-900 mb-4">Top Azure Resource Groups</h3>
+                    <div className="space-y-4">
+                        {azureCosts?.costs_by_resource_group.slice(0, 5).map((rg, index) => (
+                            <div key={index} className="flex items-center justify-between">
+                                <div className="flex items-center">
+                                    <div className="w-2 h-2 rounded-full bg-sky-500 mr-3"></div>
+                                    <span className="text-sm text-gray-700 truncate max-w-[200px]">{rg.resource_group}</span>
+                                </div>
+                                <span className="text-sm font-medium text-gray-900">{formatCurrency(rg.amount)}</span>
+                            </div>
+                        ))}
                     </div>
-                )}
-            </div>
-
-            {/* Period Info */}
-            <div className="mt-6 flex items-center text-sm text-gray-600">
-                <Calendar className="h-4 w-4 mr-2" />
-                <span>Period: {startDate} to {endDate}</span>
+                </div>
             </div>
         </div>
     );
