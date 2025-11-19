@@ -59,6 +59,7 @@ async def get_azure_costs(
             detail=f"Failed to initialize Azure client: {exc}"
         ) from exc
 
+    try:
         scope = f"/subscriptions/{subscription_id}"
         query_definition = QueryDefinition(
             type="ActualCost",

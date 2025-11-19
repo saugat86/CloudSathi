@@ -10,6 +10,9 @@ from pydantic import BaseModel
 from transformers import AutoModelForSeq2SeqLM, AutoTokenizer
 
 MODEL_PATH = os.getenv("RECOMMENDER_MODEL_PATH", "../../nlp/model")
+# Resolve to absolute path to avoid HFValidationError with relative paths
+if not os.path.isabs(MODEL_PATH):
+    MODEL_PATH = os.path.abspath(MODEL_PATH)
 
 
 class RecommendationRequest(BaseModel):
@@ -28,11 +31,17 @@ router = APIRouter()
 
 # Load model and tokenizer once at startup
 try:
-    TOKENIZER = AutoTokenizer.from_pretrained(MODEL_PATH)
-    MODEL = AutoModelForSeq2SeqLM.from_pretrained(MODEL_PATH)
-    DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    MODEL = MODEL.to(DEVICE)
-except OSError as e:
+    if os.path.exists(MODEL_PATH) and os.listdir(MODEL_PATH):
+         TOKENIZER = AutoTokenizer.from_pretrained(MODEL_PATH)
+         MODEL = AutoModelForSeq2SeqLM.from_pretrained(MODEL_PATH)
+         DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+         MODEL = MODEL.to(DEVICE)
+    else:
+         print(f"[WARNING] Model directory {MODEL_PATH} not found or empty. Skipping model load.", file=sys.stderr)
+         TOKENIZER = None
+         MODEL = None
+         DEVICE = None
+except Exception as e:
     print(f"[ERROR] Failed to load recommendation model: {e}", file=sys.stderr)
     TOKENIZER = None
     MODEL = None

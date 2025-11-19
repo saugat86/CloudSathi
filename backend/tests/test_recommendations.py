@@ -18,9 +18,9 @@ def test_recommendation_success(monkeypatch):
         def decode(self, ids, skip_special_tokens=True):
             return "Use reserved instances for EC2"
     import app.api.recommendation_routes as rec_mod
-    monkeypatch.setattr(rec_mod, "model", DummyModel())
-    monkeypatch.setattr(rec_mod, "tokenizer", DummyTokenizer())
-    monkeypatch.setattr(rec_mod, "device", "cpu")
+    monkeypatch.setattr(rec_mod, "MODEL", DummyModel())
+    monkeypatch.setattr(rec_mod, "TOKENIZER", DummyTokenizer())
+    monkeypatch.setattr(rec_mod, "DEVICE", "cpu")
 
     payload = {"cost_data": {"EC2": "high usage", "S3": "infrequent access"}}
     response = client.post("/api/recommendations", json=payload)
@@ -30,8 +30,8 @@ def test_recommendation_success(monkeypatch):
 
 def test_recommendation_model_not_loaded(monkeypatch):
     import app.api.recommendation_routes as rec_mod
-    monkeypatch.setattr(rec_mod, "model", None)
-    monkeypatch.setattr(rec_mod, "tokenizer", None)
+    monkeypatch.setattr(rec_mod, "MODEL", None)
+    monkeypatch.setattr(rec_mod, "TOKENIZER", None)
     payload = {"cost_data": {"EC2": "high usage"}}
     response = client.post("/api/recommendations", json=payload)
     assert response.status_code == 500
@@ -48,9 +48,9 @@ def test_recommendation_inference_error(monkeypatch):
         def decode(self, ids, skip_special_tokens=True):
             return ""
     import app.api.recommendation_routes as rec_mod
-    monkeypatch.setattr(rec_mod, "model", DummyModel())
-    monkeypatch.setattr(rec_mod, "tokenizer", DummyTokenizer())
-    monkeypatch.setattr(rec_mod, "device", "cpu")
+    monkeypatch.setattr(rec_mod, "MODEL", DummyModel())
+    monkeypatch.setattr(rec_mod, "TOKENIZER", DummyTokenizer())
+    monkeypatch.setattr(rec_mod, "DEVICE", "cpu")
     payload = {"cost_data": {"EC2": "high usage"}}
     response = client.post("/api/recommendations", json=payload)
     assert response.status_code == 500
