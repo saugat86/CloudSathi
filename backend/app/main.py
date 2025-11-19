@@ -5,6 +5,8 @@ from app.api.routes import aws_router
 from app.api.azure_routes import azure_router
 from app.api.recommendation_routes import router as recommendation_router
 
+from app.api.aws_cur_routes import router as aws_cur_router
+
 # Load environment variables from .env file
 load_dotenv()
 
@@ -24,5 +26,6 @@ app.add_middleware(
 )
 
 app.include_router(aws_router, prefix="/api/aws", tags=["AWS"])
+app.include_router(aws_cur_router, prefix="/api/aws/cur", tags=["AWS CUR"])
 app.include_router(azure_router, prefix="/api/azure", tags=["Azure"])
 app.include_router(recommendation_router, prefix="/api", tags=["Recommendations"])
