@@ -1,0 +1,52 @@
+name: Generate Changelog
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Tag to generate changelog for (e.g., v1.0.0)'
+        required: false
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  changelog:
+    name: Generate and Update Changelog
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Fetch all history for changelog generation
+
+      - name: Generate Changelog
+        id: changelog
+        uses: mikepenz/release-changelog-builder-action@v4
+        with:
+          configuration: ".github/changelog-config.json"
+          outputFile: "CHANGELOG.md"
+          fromTag: ${{ github.event.inputs.tag || github.ref_name }}
+          toTag: ${{ github.event.inputs.tag || github.ref_name }}
+          commitMode: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Commit Changelog
+        if: success()
+        run: |
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
+          git add CHANGELOG.md
+          git diff --staged --quiet || git commit -m "docs: update CHANGELOG for ${{ github.event.inputs.tag || github.ref_name }}"
+          git push origin HEAD:main || echo "No changes to push"
+
+      - name: Output Changelog
+        run: |
+          echo "## Changelog for ${{ github.event.inputs.tag || github.ref_name }}"
+          cat CHANGELOG.md

@@ -1,0 +1,127 @@
+{
+    "categories": [
+        {
+            "title": "## 🚀 Features",
+            "labels": [
+                "feature",
+                "feat",
+                "enhancement"
+            ]
+        },
+        {
+            "title": "## 🐛 Bug Fixes",
+            "labels": [
+                "fix",
+                "bug",
+                "bugfix"
+            ]
+        },
+        {
+            "title": "## 📚 Documentation",
+            "labels": [
+                "docs",
+                "documentation"
+            ]
+        },
+        {
+            "title": "## 🔧 Maintenance",
+            "labels": [
+                "chore",
+                "maintenance",
+                "refactor"
+            ]
+        },
+        {
+            "title": "## 🔄 CI/CD",
+            "labels": [
+                "ci",
+                "cd",
+                "workflow"
+            ]
+        },
+        {
+            "title": "## ⚡ Performance",
+            "labels": [
+                "performance",
+                "perf"
+            ]
+        },
+        {
+            "title": "## 🧪 Tests",
+            "labels": [
+                "test",
+                "tests"
+            ]
+        },
+        {
+            "title": "## 🔒 Security",
+            "labels": [
+                "security"
+            ]
+        }
+    ],
+    "ignore_labels": [
+        "ignore",
+        "wontfix",
+        "duplicate",
+        "invalid"
+    ],
+    "sort": {
+        "order": "ASC",
+        "on_property": "mergedAt"
+    },
+    "template": "#{{CHANGELOG}}\n\n<details>\n<summary>Uncategorized</summary>\n\n#{{UNCATEGORIZED}}\n</details>",
+    "pr_template": "- #{{TITLE}} by @#{{AUTHOR}} in ##{{NUMBER}}",
+    "empty_template": "- No changes",
+    "label_extractor": [
+        {
+            "pattern": "^(feat|feature)(\\(.+\\))?:",
+            "target": "feature"
+        },
+        {
+            "pattern": "^(fix|bugfix)(\\(.+\\))?:",
+            "target": "fix"
+        },
+        {
+            "pattern": "^docs(\\(.+\\))?:",
+            "target": "docs"
+        },
+        {
+            "pattern": "^(chore|refactor)(\\(.+\\))?:",
+            "target": "chore"
+        },
+        {
+            "pattern": "^ci(\\(.+\\))?:",
+            "target": "ci"
+        },
+        {
+            "pattern": "^perf(\\(.+\\))?:",
+            "target": "performance"
+        },
+        {
+            "pattern": "^test(\\(.+\\))?:",
+            "target": "test"
+        }
+    ],
+    "duplicate_filter": {
+        "pattern": "\\[DUPLICATE\\]",
+        "on_property": "title",
+        "method": "match"
+    },
+    "transformers": [
+        {
+            "pattern": "[\\-\\*] (\\[(...|TEST|CI|SKIP)\\])( )?(.+?)\n(.+?[\\-\\*] )(.+)",
+            "target": "- $4\n  - $6"
+        }
+    ],
+    "max_tags_to_fetch": 200,
+    "max_pull_requests": 200,
+    "max_back_track_time_days": 365,
+    "exclude_merge_branches": [
+        "main",
+        "master"
+    ],
+    "tag_resolver": {
+        "method": "semver"
+    }
+}
