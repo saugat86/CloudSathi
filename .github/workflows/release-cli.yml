@@ -6,6 +6,9 @@ on:
       - 'v*'  # Trigger on version tags like v1.0.0
   workflow_dispatch:  # Allow manual trigger
 
+permissions:
+  contents: write
+
 jobs:
   build:
     name: Build CLI for ${{ matrix.os }}
@@ -25,10 +28,10 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Set up Python
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
           python-version: '3.11'
 
@@ -53,7 +56,7 @@ jobs:
           move dist\cloudsathi.exe dist\${{ matrix.asset_name }}
 
       - name: Upload artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: ${{ matrix.artifact_name }}
           path: dist/${{ matrix.asset_name }}
@@ -66,10 +69,10 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Download all artifacts
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           path: artifacts
 
@@ -77,13 +80,9 @@ jobs:
         run: ls -R artifacts
 
       - name: Create Release
-        id: create_release
-        uses: actions/create-release@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        uses: softprops/action-gh-release@v1
         with:
-          tag_name: ${{ github.ref_name }}
-          release_name: CloudSathi CLI ${{ github.ref_name }}
+          name: CloudSathi CLI ${{ github.ref_name }}
           body: |
             ## CloudSathi CLI Release ${{ github.ref_name }}
             
@@ -131,35 +130,11 @@ jobs:
             ```
             
             For more information, see the [CLI Guide](https://github.com/saugat86/CloudSathi/blob/main/docs/CLI_GUIDE.md).
+          files: |
+            artifacts/cloudsathi-linux/cloudsathi-linux-amd64
+            artifacts/cloudsathi-macos/cloudsathi-macos-amd64
+            artifacts/cloudsathi-windows.exe/cloudsathi-windows-amd64.exe
           draft: false
           prerelease: false
-
-      - name: Upload Linux executable
-        uses: actions/upload-release-asset@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: artifacts/cloudsathi-linux/cloudsathi-linux-amd64
-          asset_name: cloudsathi-linux-amd64
-          asset_content_type: application/octet-stream
-
-      - name: Upload macOS executable
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: artifacts/cloudsathi-macos/cloudsathi-macos-amd64
-          asset_name: cloudsathi-macos-amd64
-          asset_content_type: application/octet-stream
-
-      - name: Upload Windows executable
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: artifacts/cloudsathi-windows.exe/cloudsathi-windows-amd64.exe
-          asset_name: cloudsathi-windows-amd64.exe
-          asset_content_type: application/octet-stream
