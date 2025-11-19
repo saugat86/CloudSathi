@@ -23,6 +23,12 @@ npm start
 ```
 The app will run at [http://localhost:3000](http://localhost:3000) and expects the backend API to be available at `/api` (see Docker setup or proxy config for local development).
 
+### 🚀 Deployment
+
+CloudSathi is designed to be deployed on AWS using **App Runner** (Backend) and **Amplify** (Frontend).
+
+👉 **[Read the Full Deployment Guide](docs/DEPLOYMENT.md)**
+
 ### Using Mock Data
 
 For development and demonstration without backend credentials, you can use sample data:
