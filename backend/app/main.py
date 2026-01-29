@@ -29,3 +29,19 @@ app.include_router(aws_router, prefix="/api/aws", tags=["AWS"])
 app.include_router(aws_cur_router, prefix="/api/aws/cur", tags=["AWS CUR"])
 app.include_router(azure_router, prefix="/api/azure", tags=["Azure"])
 app.include_router(recommendation_router, prefix="/api", tags=["Recommendations"])
+
+@app.get("/health")
+async def health_check():
+    """Health check endpoint"""
+    return {"status": "healthy", "message": "CloudSathi API is running"}
+
+@app.get("/")
+async def root():
+    """Root endpoint with API information"""
+    return {
+        "name": "CloudSathi API",
+        "version": "1.0.0",
+        "description": "Cloud cost optimization API for Nepal's startups",
+        "docs_url": "/docs",
+        "health_url": "/health"
+    }

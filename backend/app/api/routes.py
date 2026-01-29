@@ -26,7 +26,30 @@ async def get_aws_costs(
             status_code=422,
             detail="end_date must be after start_date"
         )
-    
+
+    # Check if mock data is enabled
+    use_mock_data = os.getenv('USE_MOCK_DATA', 'false').lower() == 'true'
+
+    if use_mock_data:
+        # Return mock data for development
+        logger.info("Returning mock AWS cost data")
+        mock_costs = [
+            ServiceCost(service_name="Amazon Elastic Compute Cloud", amount=156.78, currency="USD"),
+            ServiceCost(service_name="Amazon Simple Storage Service", amount=45.32, currency="USD"),
+            ServiceCost(service_name="Amazon Relational Database Service", amount=89.50, currency="USD"),
+            ServiceCost(service_name="AWS Lambda", amount=12.45, currency="USD"),
+            ServiceCost(service_name="Amazon CloudFront", amount=23.67, currency="USD"),
+        ]
+        return CostResponse(
+            start_date=start_date,
+            end_date=end_date,
+            total_cost=327.72,
+            currency="USD",
+            costs_by_service=mock_costs,
+            time_period_start=start_date.isoformat(),
+            time_period_end=end_date.isoformat()
+        )
+
     aws_access_key_id = os.getenv('AWS_ACCESS_KEY_ID')
     aws_secret_access_key = os.getenv('AWS_SECRET_ACCESS_KEY')
     aws_region = os.getenv('AWS_REGION')

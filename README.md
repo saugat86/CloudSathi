@@ -6,6 +6,8 @@
 
 An open-source, GenAI-powered cloud cost optimization tool designed specifically for Nepal's startups.
 
+> **🚀 New to CloudSathi?** Check out the [Quick Start Guide](QUICKSTART.md) to get up and running in minutes!
+
 ## Overview
 
 CloudSathi helps Nepali startups optimize their cloud costs using artificial intelligence. By analyzing cloud usage patterns and providing intelligent recommendations, it helps businesses save money while maintaining optimal performance.

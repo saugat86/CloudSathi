@@ -23,7 +23,27 @@ async def get_azure_costs(
             status_code=422,
             detail="end_date must be after start_date"
         )
-    
+
+    # Check if mock data is enabled
+    use_mock_data = os.getenv('USE_MOCK_DATA', 'false').lower() == 'true'
+
+    if use_mock_data:
+        # Return mock data for development
+        mock_costs = [
+            ResourceGroupCost(resource_group="production-rg", amount=234.56, currency="USD"),
+            ResourceGroupCost(resource_group="development-rg", amount=89.12, currency="USD"),
+            ResourceGroupCost(resource_group="testing-rg", amount=45.78, currency="USD"),
+        ]
+        return AzureCostResponse(
+            start_date=start_date,
+            end_date=end_date,
+            total_cost=369.46,
+            currency="USD",
+            costs_by_resource_group=mock_costs,
+            time_period_start=start_date.isoformat(),
+            time_period_end=end_date.isoformat()
+        )
+
     subscription_id = os.getenv('AZURE_SUBSCRIPTION_ID')
     tenant_id = os.getenv('AZURE_TENANT_ID')
     client_id = os.getenv('AZURE_CLIENT_ID')

@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import {
     TrendingUp,
     DollarSign,
-    Calendar,
     ArrowUpRight,
     ArrowDownRight,
     Target,
@@ -14,7 +13,7 @@ import { formatCurrency, getDateDaysAgo, getTodayDate } from '../utils/formatter
 import LoadingSpinner from '../components/LoadingSpinner';
 import ErrorAlert from '../components/ErrorAlert';
 import TrendChart from '../components/TrendChart';
-import { sampleBudget, sampleFindings, USE_MOCK_DATA } from '../services/mockData';
+import { sampleBudget, sampleFindings } from '../services/mockData';
 
 const Dashboard: React.FC = () => {
     const [awsCosts, setAwsCosts] = useState<(AWSCostResponse & { daily_costs?: any[] }) | null>(null);

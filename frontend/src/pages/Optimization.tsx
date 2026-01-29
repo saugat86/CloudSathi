@@ -1,10 +1,8 @@
 import React, { useState } from 'react';
 import {
     AlertTriangle,
-    CheckCircle,
     Filter,
     ArrowRight,
-    DollarSign,
     Server,
     Database,
     HardDrive
@@ -14,7 +12,7 @@ import { formatCurrency } from '../utils/formatters';
 
 const Optimization: React.FC = () => {
     const [filter, setFilter] = useState<'all' | 'aws' | 'azure'>('all');
-    const [findings, setFindings] = useState<OptimizationFinding[]>(sampleFindings);
+    const [findings] = useState<OptimizationFinding[]>(sampleFindings);
 
     const filteredFindings = findings.filter(f => filter === 'all' || f.provider === filter);
 

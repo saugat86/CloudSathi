@@ -66,7 +66,29 @@ def preprocess_cost_data(cost_data: Dict[str, Any]) -> str:
 @router.post("/recommendations", response_model=RecommendationResponse)
 def get_recommendation(request: RecommendationRequest):
     """Generates a cost optimization recommendation."""
+    # Check if mock data is enabled
+    use_mock_data = os.getenv('USE_MOCK_DATA', 'false').lower() == 'true'
+
     if MODEL is None or TOKENIZER is None:
+        if use_mock_data:
+            # Return mock recommendation when model is not loaded
+            input_text = preprocess_cost_data(request.cost_data)
+            mock_recommendations = [
+                "Consider using Reserved Instances for EC2 to save up to 75% on compute costs.",
+                "Switch to spot instances for non-critical workloads to reduce costs by 70-90%.",
+                "Move infrequently accessed S3 data to Glacier storage class for 80% savings.",
+                "Right-size your RDS instances based on actual usage patterns.",
+                "Enable auto-scaling to optimize resource utilization and reduce costs."
+            ]
+            # Simple mock logic based on input
+            if "ec2" in input_text.lower() or "compute" in input_text.lower():
+                return {"recommendation": mock_recommendations[0]}
+            elif "s3" in input_text.lower() or "storage" in input_text.lower():
+                return {"recommendation": mock_recommendations[2]}
+            elif "rds" in input_text.lower() or "database" in input_text.lower():
+                return {"recommendation": mock_recommendations[3]}
+            else:
+                return {"recommendation": mock_recommendations[4]}
         raise HTTPException(
             status_code=500, detail="Recommendation model not loaded."
         )
